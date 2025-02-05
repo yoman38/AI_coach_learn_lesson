@@ -60,7 +60,6 @@ os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "google_credentials.json"
 vision_client = vision.ImageAnnotatorClient()
 speech_client = speech.SpeechClient()
 storage_client = storage.Client()
-)
 
 # Set the name of your GCS bucket here (or load it from secrets).
 GCS_BUCKET_NAME = st.secrets["secrets"]["gcs_bucket_name"]
