@@ -49,9 +49,15 @@ class AudioRecorder(AudioProcessorBase):
 # Load credentials from Streamlit Secrets
 gcs_credentials = st.secrets["google_cloud"]["credentials"]
 
+# Check if credentials is a string or already a dict
+if isinstance(gcs_credentials, str):
+    creds = json.loads(gcs_credentials)
+else:
+    creds = gcs_credentials
+
 # Save to a temporary file
 with open("google_credentials.json", "w") as f:
-    json.dump(json.loads(gcs_credentials), f)
+    json.dump(creds, f)
 
 # Set the environment variable for Google Cloud authentication
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "google_credentials.json"
