@@ -46,14 +46,9 @@ class AudioRecorder(AudioProcessorBase):
 # ----------------------------
 # Environment & Client Setup
 # ----------------------------
-# Load credentials from Streamlit Secrets
-gcs_credentials = st.secrets["google_cloud"]["credentials"]
-
-# Check if credentials is a string or already a dict
-if isinstance(gcs_credentials, str):
-    creds = json.loads(gcs_credentials)
-else:
-    creds = gcs_credentials
+# Load credentials from Streamlit Secrets.
+# With Approach 1, the credentials are already structured as a dictionary.
+creds = st.secrets["google_cloud"]["credentials"]
 
 # Save to a temporary file
 with open("google_credentials.json", "w") as f:
