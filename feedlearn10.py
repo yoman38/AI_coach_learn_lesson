@@ -50,9 +50,9 @@ class AudioRecorder(AudioProcessorBase):
 # With Approach 1, the credentials are already structured as a dictionary.
 creds = st.secrets["google_cloud"]["credentials"]
 
-# Save to a temporary file
+# Save to a temporary file (convert AttrDict to plain dict first)
 with open("google_credentials.json", "w") as f:
-    json.dump(creds, f)
+    json.dump(dict(creds), f)
 
 # Set the environment variable for Google Cloud authentication
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "google_credentials.json"
