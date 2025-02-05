@@ -46,13 +46,21 @@ class AudioRecorder(AudioProcessorBase):
 # ----------------------------
 # Environment & Client Setup
 # ----------------------------
-# Set your Google Cloud credentials (update the path as needed)
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "D:\\MesProjets\\3-learningbyfeedback\\API\\ggle_cred.json"
+# Load credentials from Streamlit Secrets
+gcs_credentials = st.secrets["google_cloud"]["credentials"]
+
+# Save to a temporary file
+with open("google_credentials.json", "w") as f:
+    json.dump(json.loads(gcs_credentials), f)
+
+# Set the environment variable for Google Cloud authentication
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "google_credentials.json"
+
+# Initialize the Google Cloud clients
 vision_client = vision.ImageAnnotatorClient()
 speech_client = speech.SpeechClient()
-
-# Create a Google Cloud Storage client.
 storage_client = storage.Client()
+)
 
 # Set the name of your GCS bucket here (or load it from secrets).
 GCS_BUCKET_NAME = st.secrets["secrets"]["gcs_bucket_name"]
