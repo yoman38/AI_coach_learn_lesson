@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Real-Time Speech-to-Text</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        #transcript { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; }
+        button { padding: 10px 20px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Real-Time Speech-to-Text</h1>
+    <button id="startBtn">Start Recording</button>
+    <button id="stopBtn" disabled>Stop Recording</button>
+    <div id="transcript"></div>
+
+    <script>
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const transcriptDiv = document.getElementById('transcript');
+
+        let socket;
+        let audioContext;
+        let stream;
+
+        startBtn.addEventListener('click', async () => {
+            // Initialize WebSocket connection
+            socket = new WebSocket('ws://localhost:8000');
+
+            socket.binaryType = 'arraybuffer'; // Use binary data
+
+            socket.onopen = () => {
+                console.log('WebSocket connection established');
+                startRecording();
+            };
+
+            socket.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (data.is_final) {
+                    transcriptDiv.innerHTML += `<p><strong>${data.transcript}</strong></p>`;
+                } else {
+                    transcriptDiv.innerHTML += `<p>${data.transcript}</p>`;
+                }
+                transcriptDiv.scrollTop = transcriptDiv.scrollHeight;
+            };
+
+            socket.onerror = (error) => {
+                console.error('WebSocket error:', error);
+            };
+
+            socket.onclose = () => {
+                console.log('WebSocket connection closed');
+            };
+
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+        });
+
+        stopBtn.addEventListener('click', () => {
+            stopRecording();
+            if (socket.readyState === WebSocket.OPEN) {
+                socket.close();
+            }
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+        });
+
+        async function startRecording() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+                audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+                const source = audioContext.createMediaStreamSource(stream);
+                const processor = audioContext.createScriptProcessor(4096, 1, 1);
+
+                source.connect(processor);
+                processor.connect(audioContext.destination);
+
+                processor.onaudioprocess = function(e) {
+                    const audioData = e.inputBuffer.getChannelData(0);
+                    const int16Data = floatTo16BitPCM(audioData);
+                    // Send as binary data
+                    socket.send(int16Data.buffer);
+                };
+            } catch (err) {
+                console.error('Error accessing microphone:', err);
+            }
+        }
+
+        function stopRecording() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+            if (audioContext) {
+                audioContext.close();
+            }
+        }
+
+        function floatTo16BitPCM(floatSamples) {
+            const buffer = new Int16Array(floatSamples.length);
+            for (let i = 0; i < floatSamples.length; i++) {
+                const s = Math.max(-1, Math.min(1, floatSamples[i]));
+                buffer[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+            }
+            return buffer;
+        }
+    </script>
+</body>
+</html>
