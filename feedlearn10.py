@@ -361,10 +361,7 @@ if st.button("Send Text"):
         st.warning("No lesson content provided.")
     st.session_state.lesson_content = lesson_content  # Save in session state for later use.
 
-# If lesson content is already set, display it.
-if st.session_state.get("lesson_content"):
-    st.markdown("### Lesson Content to Use:")
-    st.write(st.session_state.lesson_content)
+# Do not display the lesson transcript here when clicking "Send Text".
 
 # ----------------------------
 # Step 2: Audio Input and Timer
@@ -491,8 +488,7 @@ if st.button("Generate Exercise"):
     if exercise_text:
         st.session_state.exercise = exercise_text
         st.success("Exercise generated successfully!")
-        st.markdown("### Generated Exercise")
-        st.write(exercise_text)
+        # Removed display of generated exercise text to avoid showing ChatGPT output before answer form
 
 # If an exercise has been generated, display an answer section
 if "exercise" in st.session_state:
@@ -664,6 +660,9 @@ if st.button("Generate Resume"):
 </body>
 </html>"""
             st.download_button("Download Resume as HTML", html_content, file_name="resume.html", mime="text/html")
+            # Display ChatGPT output after the download button with proper formatting.
+            st.markdown("### Generated Resume Output:")
+            st.markdown(parsed_resume_html, unsafe_allow_html=True)
             st.success("Resume generated successfully!")
         else:
             st.error("Failed to generate resume.")
